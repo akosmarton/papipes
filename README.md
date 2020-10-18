@@ -3,7 +3,7 @@ Pulseaudio client library in Golang for creating virtual sinks and sources
 
 ## Usage
 
-```
+```go
 package main
 
 import (
