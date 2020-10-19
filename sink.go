@@ -26,7 +26,7 @@ func (s *Sink) Open() error {
 	var err error
 
 	if !filepath.IsAbs(s.Filename) {
-		return errors.New("Filename is not absolue patch")
+		return errors.New("Filename is not absolute path")
 	}
 
 	args := make([]string, 0)
