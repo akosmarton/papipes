@@ -19,6 +19,7 @@ type Sink struct {
 	UseSystemClockForTiming bool
 	moduleIndex             int
 	file                    *os.File
+	open                    bool
 }
 
 func (s *Sink) Open() error {
@@ -70,7 +71,9 @@ func (s *Sink) Open() error {
 		return err
 	}
 
-	return err
+	s.open = true
+
+	return nil
 }
 
 func (s *Sink) Close() error {
@@ -87,9 +90,16 @@ func (s *Sink) Close() error {
 	if err != nil {
 		return errors.New(string(out))
 	}
+
+	s.open = false
+
 	return nil
 }
 
 func (s *Sink) Read(p []byte) (n int, err error) {
 	return s.file.Read((p))
+}
+
+func (s *Sink) IsOpen() bool {
+	return s.open
 }

@@ -18,6 +18,7 @@ type Source struct {
 	// channelMap
 	file        *os.File
 	moduleIndex int
+	open        bool
 }
 
 func (s *Source) Open() error {
@@ -65,7 +66,9 @@ func (s *Source) Open() error {
 		return err
 	}
 
-	return err
+	s.open = true
+
+	return nil
 }
 
 func (s *Source) Close() error {
@@ -82,9 +85,16 @@ func (s *Source) Close() error {
 	if err != nil {
 		return errors.New(string(out))
 	}
+
+	s.open = false
+
 	return nil
 }
 
 func (s *Source) Write(p []byte) (n int, err error) {
 	return s.file.Write(p)
+}
+
+func (s *Source) IsOpen() bool {
+	return s.open
 }
