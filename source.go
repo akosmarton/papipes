@@ -9,13 +9,13 @@ import (
 )
 
 type Source struct {
-	Filename   string
-	Name       string
-	Properties map[string]interface{}
-	Format     string
-	Rate       int
-	Channels   int
+	Filename string
+	Name     string
+	Format   string
+	Rate     int
+	Channels int
 	// channelMap
+	properties  map[string]interface{}
 	file        *os.File
 	moduleIndex int
 	open        bool
@@ -47,7 +47,7 @@ func (s *Source) Open() error {
 
 	var props string
 
-	for k, v := range s.Properties {
+	for k, v := range s.properties {
 		props = props + fmt.Sprintf("%s='%v'", k, v)
 	}
 
@@ -97,4 +97,21 @@ func (s *Source) Write(p []byte) (n int, err error) {
 
 func (s *Source) IsOpen() bool {
 	return s.open
+}
+
+func (s *Source) SetProperty(key string, value interface{}) *Source {
+	if s.properties == nil {
+		s.properties = make(map[string]interface{})
+	}
+
+	s.properties[key] = value
+	return s
+}
+
+func (s *Source) GetProperty(key string) interface{} {
+	if s.properties == nil {
+		return nil
+	}
+
+	return s.properties[key]
 }

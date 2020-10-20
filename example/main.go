@@ -1,25 +1,24 @@
 package main
 
 import (
+	"time"
+
 	"github.com/akosmarton/papipes"
 )
 
 func main() {
 	source := papipes.Source{
 		Filename: "/tmp/source.sock",
-		Properties: map[string]interface{}{
-			"device.description": "Virtual Input",
-		},
 	}
+	source.SetProperty("device.description", "Virtual Input")
 	source.Open()
 	defer source.Close()
 
 	sink := papipes.Sink{
 		Filename: "/tmp/sink.sock",
-		Properties: map[string]interface{}{
-			"device.description": "Virtual Output",
-		},
 	}
+	sink.SetProperty("device.description", "Virtual Output")
+
 	sink.Open()
 	defer sink.Close()
 
@@ -27,4 +26,6 @@ func main() {
 
 	source.Write(p)
 	sink.Read(p)
+
+	time.Sleep(time.Second * 10)
 }

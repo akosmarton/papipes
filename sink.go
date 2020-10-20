@@ -9,17 +9,17 @@ import (
 )
 
 type Sink struct {
-	Filename   string
-	Name       string
-	Properties map[string]interface{}
-	Format     string
-	Rate       int
-	Channels   int
+	Filename string
+	Name     string
+	Format   string
+	Rate     int
+	Channels int
 	// ChannelMap
 	UseSystemClockForTiming bool
-	moduleIndex             int
+	properties              map[string]interface{}
 	file                    *os.File
 	open                    bool
+	moduleIndex             int
 }
 
 func (s *Sink) Open() error {
@@ -52,7 +52,7 @@ func (s *Sink) Open() error {
 
 	var props string
 
-	for k, v := range s.Properties {
+	for k, v := range s.properties {
 		props = props + fmt.Sprintf("%s='%v'", k, v)
 	}
 
@@ -102,4 +102,21 @@ func (s *Sink) Read(p []byte) (n int, err error) {
 
 func (s *Sink) IsOpen() bool {
 	return s.open
+}
+
+func (s *Sink) SetProperty(key string, value interface{}) *Sink {
+	if s.properties == nil {
+		s.properties = make(map[string]interface{})
+	}
+
+	s.properties[key] = value
+	return s
+}
+
+func (s *Sink) GetProperty(key string) interface{} {
+	if s.properties == nil {
+		return nil
+	}
+
+	return s.properties[key]
 }
