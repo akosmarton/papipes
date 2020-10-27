@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type Sink struct {
@@ -77,9 +79,9 @@ func (s *Sink) Open() error {
 }
 
 func (s *Sink) Close() error {
-	if err := s.file.Close(); err != nil {
-		return err
-	}
+		if err := s.file.Close(); err != nil {
+			return err
+		}
 
 	args := make([]string, 0)
 	args = append(args, "unload-module")
@@ -119,4 +121,50 @@ func (s *Sink) GetProperty(key string) interface{} {
 	}
 
 	return s.properties[key]
+}
+
+func GetActiveSinks() ([]*Sink, error) {
+	sinks := make([]*Sink, 0)
+	ls, err := getModulesList()
+	if err != nil {
+		return nil, err
+	}
+	for _, l := range ls {
+		ss := strings.Split(l, "\t")
+		if len(ss) < 2 {
+			continue
+		}
+		sink := &Sink{}
+		sink.moduleIndex, _ = strconv.Atoi(ss[0])
+		if ss[1] != "module-pipe-sink" {
+			continue
+		}
+		if len(ss) > 2 {
+			for k, v := range parseArguments(ss[2], '"') {
+				switch k {
+				case "file":
+					sink.Filename = v
+				case "sink_name":
+					sink.Name = v
+				case "format":
+					sink.Format = v
+				case "rate":
+					sink.Rate, _ = strconv.Atoi(v)
+				case "channels":
+					sink.Channels, _ = strconv.Atoi(v)
+				case "use_system_clock_for_timing":
+					if v == "yes" {
+						sink.UseSystemClockForTiming = true
+					}
+				case "sink_properties":
+					for k, v := range parseArguments(v, '\'') {
+						sink.SetProperty(k, v)
+					}
+				}
+			}
+		}
+		sinks = append(sinks, sink)
+	}
+
+	return sinks, nil
 }

@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type Source struct {
@@ -72,9 +74,9 @@ func (s *Source) Open() error {
 }
 
 func (s *Source) Close() error {
-	if err := s.file.Close(); err != nil {
-		return err
-	}
+		if err := s.file.Close(); err != nil {
+			return err
+		}
 
 	args := make([]string, 0)
 	args = append(args, "unload-module")
@@ -114,4 +116,46 @@ func (s *Source) GetProperty(key string) interface{} {
 	}
 
 	return s.properties[key]
+}
+
+func GetActiveSources() ([]*Source, error) {
+	sources := make([]*Source, 0)
+	ls, err := getModulesList()
+	if err != nil {
+		return nil, err
+	}
+	for _, l := range ls {
+		ss := strings.Split(l, "\t")
+		if len(ss) < 2 {
+			continue
+		}
+		source := &Source{}
+		source.moduleIndex, _ = strconv.Atoi(ss[0])
+		if ss[1] != "module-pipe-source" {
+			continue
+		}
+		if len(ss) > 2 {
+			for k, v := range parseArguments(ss[2], '"') {
+				switch k {
+				case "file":
+					source.Filename = v
+				case "source_name":
+					source.Name = v
+				case "format":
+					source.Format = v
+				case "rate":
+					source.Rate, _ = strconv.Atoi(v)
+				case "channels":
+					source.Channels, _ = strconv.Atoi(v)
+				case "source_properties":
+					for k, v := range parseArguments(v, '\'') {
+						source.SetProperty(k, v)
+					}
+				}
+			}
+		}
+		sources = append(sources, source)
+	}
+
+	return sources, nil
 }
