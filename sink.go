@@ -79,9 +79,11 @@ func (s *Sink) Open() error {
 }
 
 func (s *Sink) Close() error {
+	if s.file != nil {
 		if err := s.file.Close(); err != nil {
 			return err
 		}
+	}
 
 	args := make([]string, 0)
 	args = append(args, "unload-module")
